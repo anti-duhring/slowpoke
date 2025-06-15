@@ -22,6 +22,7 @@ func TestRateLimit(t *testing.T) {
 		t.Errorf("Expected IntervalUntilNewTokenIsAddedInSeconds %d, got %d", interval, bucket.IntervalUntilNewTokenIsAddedInSeconds)
 	}
 
+	// Consumes all avaliable tokens
 	for i := range maxTokens {
 		hasToken := bucket.GetToken()
 		if !hasToken {
@@ -31,14 +32,17 @@ func TestRateLimit(t *testing.T) {
 		t.Log(i, "hasToken", hasToken)
 	}
 
+	// No more tokens left
 	hasToken := bucket.GetToken()
 	if hasToken {
 		t.Errorf("Expected %v, got %v", false, hasToken)
 	}
 	t.Log("hasToken", hasToken)
 
+	// Add 2 more tokens
 	time.Sleep(time.Duration(interval*2) * time.Second)
 
+	// Consumes it all
 	for i := range 2 {
 		hasToken := bucket.GetToken()
 		if !hasToken {
@@ -48,6 +52,7 @@ func TestRateLimit(t *testing.T) {
 		t.Log(i, "hasToken", hasToken)
 	}
 
+	// No more tokens left
 	hasToken = bucket.GetToken()
 	if hasToken {
 		t.Errorf("Expected %v, got %v", false, hasToken)

@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/anti-duhring/slowpoke/internal/transport-inbound/http"
+)
 
 func main() {
-	fmt.Println("Hello, World!")
+	http.Init()
 }

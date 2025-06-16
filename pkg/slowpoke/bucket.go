@@ -1,4 +1,4 @@
-package rate_limit
+package slowpoke
 
 import (
 	"fmt"
@@ -6,7 +6,14 @@ import (
 	"time"
 )
 
-type Bucket struct {
+type Bucket interface {
+	startTick()
+	AddToken()
+	GetToken() bool
+	Stop()
+}
+
+type bucket struct {
 	MaxTokens                             int
 	IntervalUntilNewTokenIsAddedInSeconds int
 	queue                                 []int
@@ -15,8 +22,8 @@ type Bucket struct {
 	mu                                    sync.Mutex
 }
 
-func NewBucket(maxT, interval int) *Bucket {
-	b := Bucket{
+func NewBucket(maxT, interval int) *bucket {
+	b := bucket{
 		MaxTokens:                             maxT,
 		IntervalUntilNewTokenIsAddedInSeconds: interval,
 		queue:                                 make([]int, maxT),
@@ -28,7 +35,7 @@ func NewBucket(maxT, interval int) *Bucket {
 	return &b
 }
 
-func (b *Bucket) startTick() {
+func (b *bucket) startTick() {
 	ticker := time.NewTicker(time.Duration(b.IntervalUntilNewTokenIsAddedInSeconds) * time.Second)
 
 	go func() {
@@ -47,7 +54,7 @@ func (b *Bucket) startTick() {
 	b.ticker = ticker
 }
 
-func (b *Bucket) AddToken() {
+func (b *bucket) AddToken() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -59,7 +66,7 @@ func (b *Bucket) AddToken() {
 	fmt.Printf("Token added. Current tokens: %d at %s\n", len(b.queue), time.Now().Format("15:04:05"))
 }
 
-func (b *Bucket) GetToken() bool {
+func (b *bucket) GetToken() bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -72,6 +79,6 @@ func (b *Bucket) GetToken() bool {
 	return true
 }
 
-func (b *Bucket) Stop() {
+func (b *bucket) Stop() {
 	close(b.stopCh)
 }

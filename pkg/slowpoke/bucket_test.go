@@ -1,16 +1,16 @@
-package rate_limit_test
+package slowpoke_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/anti-duhring/slowpoke/pkg/rate_limit"
+	"github.com/anti-duhring/slowpoke/pkg/slowpoke"
 )
 
 func TestRateLimit(t *testing.T) {
 	maxTokens := 10
 	interval := 2
-	bucket := rate_limit.NewBucket(maxTokens, interval)
+	bucket := slowpoke.NewBucket(maxTokens, interval)
 
 	if bucket == nil {
 		t.Fatal("NewBucket returned nil")

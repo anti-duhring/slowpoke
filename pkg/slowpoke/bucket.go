@@ -16,7 +16,7 @@ type Bucket interface {
 type bucket struct {
 	MaxTokens                             int
 	IntervalUntilNewTokenIsAddedInSeconds int
-	queue                                 []int
+	tokens                                int
 	ticker                                *time.Ticker
 	stopCh                                chan struct{}
 	mu                                    sync.Mutex
@@ -26,7 +26,7 @@ func NewBucket(maxT, interval int) *bucket {
 	b := bucket{
 		MaxTokens:                             maxT,
 		IntervalUntilNewTokenIsAddedInSeconds: interval,
-		queue:                                 make([]int, maxT),
+		tokens:                                maxT,
 		stopCh:                                make(chan struct{}),
 	}
 
@@ -58,23 +58,23 @@ func (b *bucket) AddToken() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if len(b.queue) >= b.MaxTokens {
+	if b.tokens == b.MaxTokens {
 		return
 	}
 
-	b.queue = append(b.queue, 1)
-	fmt.Printf("Token added. Current tokens: %d at %s\n", len(b.queue), time.Now().Format("15:04:05"))
+	b.tokens += 1
+	fmt.Printf("Token added. Current tokens: %d at %s\n", b.tokens, time.Now().Format("15:04:05"))
 }
 
 func (b *bucket) GetToken() bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	if len(b.queue) <= 0 {
+	if b.tokens == 0 {
 		return false
 	}
 
-	b.queue = b.queue[:len(b.queue)-1]
+	b.tokens -= 1
 
 	return true
 }

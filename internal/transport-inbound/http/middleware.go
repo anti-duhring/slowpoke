@@ -38,8 +38,8 @@ func rateLimit(c *fiber.Ctx, buckets map[string]slowpoke.Bucket) error {
 	b := buckets[userID]
 	hasToken := b.GetToken()
 	if !hasToken {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "limit exceeded",
+		return c.Status(429).JSON(fiber.Map{
+			"error": "too many requests",
 		})
 	}
 

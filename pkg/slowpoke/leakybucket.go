@@ -1,45 +1,54 @@
 package slowpoke
 
-import "sync"
+import (
+	"sync"
+	"time"
+)
 
-type LeakyBucket[T any] struct {
-	maxItems           int
-	queue              []T
+type LeakyBucket struct {
+	threshold          int64
+	water              int64
 	leakyRateInSeconds int64
+	lastLeakTimestamp  time.Time
 	mu                 sync.Mutex
 }
 
-func NewLeakyBucket[T any](maxItems int, leakyRateInSeconds int64) *LeakyBucket[T] {
-	l := LeakyBucket[T]{
-		maxItems:           maxItems,
+func NewLeakyBucket(threshold, leakyRateInSeconds int64) *LeakyBucket {
+	l := LeakyBucket{
+		threshold:          threshold,
 		leakyRateInSeconds: leakyRateInSeconds,
+		lastLeakTimestamp:  time.Now(),
 	}
 
 	return &l
 }
 
-func (l *LeakyBucket[T]) AddItem(item T) {
+func (l *LeakyBucket) CanLeak() bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if len(l.queue) == l.maxItems {
-		return
+	now := time.Now()
+
+	// now - lastLeakTimestamp = x; X is how many seconds passed since last check
+	// x / leakyRateInSeconds = y; y is how many of our time window has passed since then
+	// y * threshold = z; z is how much it has been leaked since then.
+	// If y is 2 (2 seconds have passed) and threshold is 10, 2 * 10 = 20 requests are considered to have leaked
+	// Note: on integer divisions the decimal part is truncated
+	leakedAmountSinceLastCheck := ((now.Unix() - l.lastLeakTimestamp.Unix()) / l.leakyRateInSeconds) * l.threshold
+
+	if leakedAmountSinceLastCheck > 0 {
+		l.water -= leakedAmountSinceLastCheck
+		l.lastLeakTimestamp = now
 	}
 
-	l.queue = append(l.queue, item)
-}
-
-func (l *LeakyBucket[T]) Leaky() *T {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	if len(l.queue) == 0 {
-		return nil
+	if l.water < 0 {
+		l.water = 0
 	}
 
-	i := l.queue[0]
+	if l.water < l.threshold {
+		l.water++
+		return true
+	}
 
-	l.queue = l.queue[1:]
-
-	return &i
+	return false
 }

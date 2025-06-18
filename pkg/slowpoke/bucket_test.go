@@ -8,56 +8,35 @@ import (
 )
 
 func TestRateLimit(t *testing.T) {
-	maxTokens := 10
-	interval := 2
+	maxTokens := int64(10)
+	interval := int64(2)
 	bucket := slowpoke.NewBucket(maxTokens, interval)
-
-	if bucket == nil {
-		t.Fatal("NewBucket returned nil")
-	}
-	if bucket.MaxTokens != maxTokens {
-		t.Errorf("Expected MaxTokens %d, got %d", maxTokens, bucket.MaxTokens)
-	}
-	if bucket.IntervalUntilNewTokenIsAddedInSeconds != interval {
-		t.Errorf("Expected IntervalUntilNewTokenIsAddedInSeconds %d, got %d", interval, bucket.IntervalUntilNewTokenIsAddedInSeconds)
-	}
 
 	// Consumes all avaliable tokens
 	for i := range maxTokens {
-		hasToken := bucket.GetToken()
-		if !hasToken {
-			t.Errorf("Expected %v, got %v", true, hasToken)
+		if !bucket.HasToken() {
+			t.Fatalf("Expected true but got false at iteration %d", i)
 		}
-
-		t.Log(i, "hasToken", hasToken)
 	}
 
 	// No more tokens left
-	hasToken := bucket.GetToken()
-	if hasToken {
-		t.Errorf("Expected %v, got %v", false, hasToken)
+	if bucket.HasToken() {
+		t.Errorf("Expected false but got true after consuming all tokens")
 	}
-	t.Log("hasToken", hasToken)
 
 	// Add 2 more tokens
-	time.Sleep(time.Duration(interval*2) * time.Second)
+	time.Sleep(4 * time.Second)
 
 	// Consumes it all
 	for i := range 2 {
-		hasToken := bucket.GetToken()
-		if !hasToken {
-			t.Errorf("Expected %v, got %v", true, hasToken)
+		if !bucket.HasToken() {
+			t.Fatalf("Expected true but got false at iteration %d", i)
 		}
 
-		t.Log(i, "hasToken", hasToken)
 	}
 
 	// No more tokens left
-	hasToken = bucket.GetToken()
-	if hasToken {
-		t.Errorf("Expected %v, got %v", false, hasToken)
+	if bucket.HasToken() {
+		t.Errorf("Expected false but got true after consuming all tokens")
 	}
-	t.Log("hasToken", hasToken)
-
-	bucket.Stop()
 }

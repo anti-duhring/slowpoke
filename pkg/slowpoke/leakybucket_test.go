@@ -15,7 +15,7 @@ func TestCanLeak_BelowThreshold(t *testing.T) {
 
 	for i := range int(threshold) - 1 {
 		if !lb.CanLeak() {
-			t.Fatalf("Expected CanLeak to be true when water is below threshold, but got false at iteration %d", i+1)
+			t.Fatalf("Expected CanLeak to be true when water is below threshold, but got false at iteration %d", i)
 		}
 	}
 }
@@ -28,7 +28,7 @@ func TestCanLeak_AtThreshold(t *testing.T) {
 
 	for i := range int(threshold) {
 		if !lb.CanLeak() {
-			t.Fatalf("Expected CanLeak to be true when filling up to threshold, but got false at iteration %d", i+1)
+			t.Fatalf("Expected CanLeak to be true when filling up to threshold, but got false at iteration %d", i)
 		}
 	}
 
@@ -45,7 +45,7 @@ func TestCanLeak_LeakingOverTime(t *testing.T) {
 
 	for i := range int(threshold) {
 		if !lb.CanLeak() {
-			t.Fatalf("Initial fill: Expected CanLeak to be true, but got false at iteration %d", i+1)
+			t.Fatalf("Initial fill: Expected CanLeak to be true, but got false at iteration %d", i)
 		}
 	}
 
@@ -77,7 +77,7 @@ func TestCanLeak_LeakingOverTime(t *testing.T) {
 
 	for i := range int(threshold) - 1 {
 		if !lb.CanLeak() {
-			t.Fatalf("Refill after 2s leak: Expected CanLeak to be true, but got false at iteration %d", i+1)
+			t.Fatalf("Refill after 2s leak: Expected CanLeak to be true, but got false at iteration %d", i)
 		}
 	}
 

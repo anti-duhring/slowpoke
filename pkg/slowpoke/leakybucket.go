@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type LeakyBucket struct {
+type leakyBucket struct {
 	threshold          int64
 	water              int64
 	leakyRateInSeconds int64
@@ -13,8 +13,8 @@ type LeakyBucket struct {
 	mu                 sync.Mutex
 }
 
-func NewLeakyBucket(threshold, leakyRateInSeconds int64) *LeakyBucket {
-	l := LeakyBucket{
+func NewLeakyBucket(threshold, leakyRateInSeconds int64) *leakyBucket {
+	l := leakyBucket{
 		threshold:          threshold,
 		leakyRateInSeconds: leakyRateInSeconds,
 		lastLeakTimestamp:  time.Now(),
@@ -23,7 +23,7 @@ func NewLeakyBucket(threshold, leakyRateInSeconds int64) *LeakyBucket {
 	return &l
 }
 
-func (l *LeakyBucket) CanLeak() bool {
+func (l *leakyBucket) CanLeak() bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

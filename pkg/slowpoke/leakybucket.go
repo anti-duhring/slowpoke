@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+type LeakyBucket interface {
+	CanLeak() bool
+}
+
 type leakyBucket struct {
 	threshold          int64
 	water              int64

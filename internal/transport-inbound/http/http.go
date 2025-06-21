@@ -1,13 +1,25 @@
 package http
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"fmt"
+	"os"
 
-func Init() *fiber.App {
+	"github.com/gofiber/fiber/v2"
+	"github.com/redis/go-redis/v9"
+)
+
+func Init(redis *redis.Client) *fiber.App {
 	app := fiber.New()
-	middleware(app)
+	middleware(app, redis)
 	routes(app)
 
-	app.Listen(":8080")
+	port := "8080"
+	p := os.Getenv("API_PORT")
+	if p != "" {
+		port = p
+	}
+
+	app.Listen(fmt.Sprintf(":%v", port))
 
 	return app
 }

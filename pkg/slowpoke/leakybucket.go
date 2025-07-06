@@ -33,26 +33,21 @@ func (l *leakyBucket) CanLeak() bool {
 
 	now := time.Now()
 
-	// now - lastLeakTimestamp = x; X is how many seconds passed since last check
-	// x / leakyRateInSeconds = y; y is how many of our time window has passed since then
-	// y * threshold = z; z is how much it has been leaked since then.
-	// If y is 2 (2 seconds have passed) and threshold is 10, 2 * 10 = 20 requests are considered to have leaked
-	// Note: on integer divisions the decimal part is truncated
-	leakedAmountSinceLastCheck := ((now.Unix() - l.lastLeakTimestamp.Unix()) / l.leakyRateInSeconds) * l.threshold
+	elapsedSeconds := now.Sub(l.lastLeakTimestamp).Seconds()
 
-	if leakedAmountSinceLastCheck > 0 {
-		l.water -= leakedAmountSinceLastCheck
+	if elapsedSeconds > 0 {
+		tokensLeaked := int64(elapsedSeconds) * l.leakyRateInSeconds
+
+		// Remove leaked tokens, but don't go below 0
+		l.water = max(0, l.water-tokensLeaked)
 		l.lastLeakTimestamp = now
 	}
 
-	if l.water < 0 {
-		l.water = 0
-	}
+	canAddToken := l.water < l.threshold
 
-	if l.water < l.threshold {
+	if canAddToken {
 		l.water++
-		return true
 	}
 
-	return false
+	return canAddToken
 }

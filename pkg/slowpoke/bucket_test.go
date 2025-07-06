@@ -21,7 +21,7 @@ func TestRateLimit(t *testing.T) {
 
 	// No more tokens left
 	if bucket.HasToken() {
-		t.Errorf("Expected false but got true after consuming all tokens")
+		t.Fatal("Expected false but got true after consuming all tokens")
 	}
 
 	// Add 2 more tokens
@@ -37,6 +37,6 @@ func TestRateLimit(t *testing.T) {
 
 	// No more tokens left
 	if bucket.HasToken() {
-		t.Errorf("Expected false but got true after consuming all tokens")
+		t.Fatal("Expected false but got true after consuming all tokens")
 	}
 }

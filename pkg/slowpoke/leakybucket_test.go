@@ -1,10 +1,11 @@
 package slowpoke_test
 
 import (
-	"github.com/anti-duhring/slowpoke/pkg/slowpoke"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/anti-duhring/slowpoke/pkg/slowpoke"
 )
 
 func TestCanLeak_BelowThreshold(t *testing.T) {
@@ -33,7 +34,7 @@ func TestCanLeak_AtThreshold(t *testing.T) {
 	}
 
 	if lb.CanLeak() {
-		t.Errorf("Expected CanLeak to be false when water is at threshold, but got true")
+		t.Fatal("Expected CanLeak to be false when water is at threshold, but got true")
 	}
 }
 
@@ -50,7 +51,7 @@ func TestCanLeak_LeakingOverTime(t *testing.T) {
 	}
 
 	if lb.CanLeak() {
-		t.Error("Expected CanLeak to be false when full, but got true before time passed")
+		t.Fatal("Expected CanLeak to be false when full, but got true before time passed")
 	}
 
 	time.Sleep(1 * time.Second)
@@ -59,30 +60,18 @@ func TestCanLeak_LeakingOverTime(t *testing.T) {
 		t.Fatal("Expected CanLeak to be true after 1 second leak, but got false")
 	}
 
-	for i := range int(threshold) - 1 {
-		if !lb.CanLeak() {
-			t.Fatalf("Refill after 1s leak: Expected CanLeak to be true, but got false at iteration %d", i)
-		}
-	}
-
-	if lb.CanLeak() {
-		t.Error("Expected CanLeak to be false when full after refill, but got true")
-	}
-
 	time.Sleep(2 * time.Second)
 
 	if !lb.CanLeak() {
 		t.Fatal("Expected CanLeak to be true after 2 second leak, but got false")
 	}
 
-	for i := range int(threshold) - 1 {
-		if !lb.CanLeak() {
-			t.Fatalf("Refill after 2s leak: Expected CanLeak to be true, but got false at iteration %d", i)
-		}
+	if !lb.CanLeak() {
+		t.Fatal("Expected CanLeak to be true after 2 second leak, but got false")
 	}
 
 	if lb.CanLeak() {
-		t.Error("Expected CanLeak to be false when full after second refill, but got true")
+		t.Fatal("Expected CanLeak to be false when full after 2 second leak, but got true")
 	}
 }
 
@@ -117,10 +106,10 @@ func TestCanLeak_Concurrency(t *testing.T) {
 	wg.Wait()
 
 	if successfulRequests > threshold {
-		t.Errorf("Concurrent requests exceeded threshold. Expected at most %d, got %d", threshold, successfulRequests)
+		t.Fatalf("Concurrent requests exceeded threshold. Expected at most %d, got %d", threshold, successfulRequests)
 	}
 
 	if successfulRequests != threshold {
-		t.Errorf("Expected exactly %d successful requests (bucket filled), got %d", threshold, successfulRequests)
+		t.Fatalf("Expected exactly %d successful requests (bucket filled), got %d", threshold, successfulRequests)
 	}
 }
